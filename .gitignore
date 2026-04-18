@@ -50,3 +50,5 @@ dist/
 # Local IDE and editor files
 *.sublime-project
 *.sublime-workspace
+
+prompt.txt
