@@ -1,3 +1,44 @@
+"""
+MODEL DESCRIPTION (Version 1: Estimation-Oriented Model)
+
+This model is a global regression model built using LightGBM. It is trained on
+data from all stations simultaneously (global modeling approach) to increase
+effective sample size and improve generalization.
+
+Key Characteristics:
+- Input includes:
+    • Current pollutant values (PM10, PM2_5, NO2, SO2)
+    • Lag features (past AQI and pollutants)
+    • Rolling statistics
+    • Time features (month, year, cyclical encoding)
+    • Hierarchical categorical features (Region, District, Station)
+
+- Target:
+    • AQI at current time step (t)
+
+Model Behavior:
+- The model primarily learns a mapping:
+      AQI(t) = f(PM10(t), PM2_5(t), NO2(t), SO2(t), ...)
+- Current pollutant values dominate prediction (as seen in feature importance)
+- Lag features contribute but are secondary
+
+Implications:
+- This is NOT a pure forecasting model
+- It estimates AQI given pollutant measurements at the same time
+- High accuracy (high R²) is expected because of strong direct relationships
+
+Use Case:
+- AQI estimation when pollutant data is already available
+- Real-time AQI calculation from sensor inputs
+
+Limitations:
+- Cannot be used for future forecasting unless future pollutant values are known
+- Contains temporal leakage for forecasting tasks
+
+Conclusion:
+This model solves a supervised regression problem, not a forward-looking
+time series forecasting problem.
+"""
 import os
 import json
 import joblib
@@ -96,39 +137,62 @@ model_path = os.path.join(output_dir, "lightgbm_model.pkl")
 joblib.dump(model, model_path)
 
 # =========================
-# 9. PLOTS
+# 9. PLOTS (IMPROVED)
 # =========================
 
-# Plot 1: Actual vs Predicted
-plt.figure()
-plt.scatter(y_test, y_pred)
+# ---------- Plot 1: Actual vs Predicted ----------
+plt.figure(figsize=(8, 6))
+plt.scatter(y_test, y_pred, alpha=0.7)
+
+# Perfect prediction line
+min_val = min(y_test.min(), y_pred.min())
+max_val = max(y_test.max(), y_pred.max())
+plt.plot([min_val, max_val], [min_val, max_val])
+
 plt.xlabel("Actual AQI")
 plt.ylabel("Predicted AQI")
 plt.title("Actual vs Predicted")
-plt.savefig(os.path.join(output_dir, "actual_vs_predicted.png"))
+
+plt.tight_layout()
+plt.savefig(os.path.join(output_dir, "actual_vs_predicted.png"), dpi=300)
 plt.close()
 
-# Plot 2: Residuals
+
+# ---------- Plot 2: Residuals ----------
 residuals = y_test - y_pred
-plt.figure()
-plt.scatter(y_pred, residuals)
+
+plt.figure(figsize=(8, 6))
+plt.scatter(y_pred, residuals, alpha=0.7)
+
+plt.axhline(y=0)
 plt.xlabel("Predicted AQI")
 plt.ylabel("Residuals")
 plt.title("Residual Plot")
-plt.axhline(y=0)
-plt.savefig(os.path.join(output_dir, "residuals.png"))
+
+plt.tight_layout()
+plt.savefig(os.path.join(output_dir, "residuals.png"), dpi=300)
 plt.close()
 
-# Plot 3: Feature Importance
-importance = model.feature_importances_
-feature_names = X_train.columns
 
-plt.figure()
-sorted_idx = np.argsort(importance)[-20:]  # top 20
-plt.barh(range(len(sorted_idx)), importance[sorted_idx])
-plt.yticks(range(len(sorted_idx)), feature_names[sorted_idx])
+# ---------- Plot 3: Feature Importance ----------
+importance = model.feature_importances_
+feature_names = np.array(X_train.columns)
+
+# Sort top 20 features
+sorted_idx = np.argsort(importance)[-20:]
+top_features = feature_names[sorted_idx]
+top_importance = importance[sorted_idx]
+
+plt.figure(figsize=(10, 8))
+plt.barh(range(len(top_features)), top_importance)
+
+plt.yticks(range(len(top_features)), top_features)
+plt.xlabel("Importance")
 plt.title("Feature Importance (Top 20)")
-plt.savefig(os.path.join(output_dir, "feature_importance.png"))
+
+# Prevent label cutoff
+plt.tight_layout()
+plt.savefig(os.path.join(output_dir, "feature_importance.png"), dpi=300, bbox_inches='tight')
 plt.close()
 
 # =========================
