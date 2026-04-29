@@ -1,54 +1,28 @@
-# Python cache and bytecode
+# Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
 
-# Virtual environments
+# Virtual Environments
 venv/
-.env
-.env.*
+env/
+.env/
 
-# Jupyter Notebook checkpoints
-.ipynb_checkpoints/
+# Jupyter Notebooks
+.ipynb_checkpoints
 
-# VS Code settings and workspace files
-.vscode/
+# Project Specific
+output/
+catboost_info/
 
-# Logs and temporary files
-*.log
-*.tmp
-*.bak
-*.swp
+# Ignore large datasets if needed (Uncomment if you want to keep them local)
+# *.csv
 
 # OS generated files
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
-
-# Pytest cache
-.pytest_cache/
-
-# Pipenv
-Pipfile.lock
-
-# Coverage reports
-htmlcov/
-.coverage
-.coverage.*
-
-# Generated distribution files
-build/
-dist/
-*.egg-info/
-*.egg
-
-# MyPy cache
-.mypy_cache/
-
-# Spyder project settings
-.spyproject/
-
-# Local IDE and editor files
-*.sublime-project
-*.sublime-workspace
-
-prompt.txt
